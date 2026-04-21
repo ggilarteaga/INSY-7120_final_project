@@ -123,11 +123,39 @@ print(f"Train R²: {OLSModel.score(X_train, y_train):.4f}")
 print(f"CV R²:  {OLSscores.mean():.4f} (+/- {OLSscores.std():.4f})")
 
 #------------------------------RIDGE-------------------------------------------
+print("\nRidge")
+# Find best alphas
+alphas = np.logspace(-3, 3, 100)  # test 100 values from 0.001 to 1000
+ridge_cv = make_pipeline(StandardScaler(), RidgeCV(alphas=alphas, cv=kf))
+ridge_cv.fit(X_train, y_train)
+best_alpha_ridge = ridge_cv.named_steps['ridgecv'].alpha_
+print(f"Best Ridge alpha: {best_alpha_ridge:.4f}")
 
+#make and fit optimal ridge
+RidgeModel = make_pipeline(StandardScaler(), Ridge(alpha=best_alpha_ridge))
+RidgeModel.fit(X_train, y_train)
+
+#score
+Ridgescores = cross_val_score(RidgeModel, X_train, y_train, cv=kf, scoring='r2')
+print(f"Train R²: {RidgeModel.score(X_train, y_train):.4f}")
+print(f"CV R²:  {Ridgescores.mean():.4f} (+/- {Ridgescores.std():.4f})")
 
 #------------------------------LASSO-------------------------------------------
+print("\nLasso")
+# find alphas again
+lasso_cv = make_pipeline(StandardScaler(), LassoCV(alphas=alphas, cv=kf, max_iter=10000))
+lasso_cv.fit(X_train, y_train)
+best_alpha_lasso = lasso_cv.named_steps['lassocv'].alpha_
+print(f"Best Lasso alpha: {best_alpha_lasso:.4f}")
 
+#make and fit optimal lasso
+LassoModel = make_pipeline(StandardScaler(), Lasso(alpha=best_alpha_lasso, max_iter=10000))
+LassoModel.fit(X_train, y_train)
 
+#score
+Lassoscores = cross_val_score(LassoModel, X_train, y_train, cv=kf, scoring='r2')
+print(f"Train R²: {LassoModel.score(X_train, y_train):.4f}")
+print(f"CV R²:  {Lassoscores.mean():.4f} (+/- {Lassoscores.std():.4f})")
 
 #--------------------------LOGISTIC REGRESSION---------------------------------
 
